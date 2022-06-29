@@ -1,7 +1,8 @@
 package applicationv1
 
 import (
-	"fmt"
+	"io/ioutil"
+	"log"
 	"os"
 
 	"github.com/tamama/tamama-cloud-deployer-machine/resource"
@@ -45,8 +46,17 @@ func (_self *ApplicationV1) _RunCommandActionVagrant(ctx *cli.Context) (err erro
 }
 
 func (_self *ApplicationV1) _RunCommandActionVagrantInitSingleNodeUbuntu2204(ctx *cli.Context) error {
-	fmt.Printf("%s", string(resource.ProfileVagrantSingleNodeUbuntu2204Vagrantfile))
-	
+	if _, err := os.Stat("Vagrantfile"); err == nil {
+		log.Printf("Already exists Vagrantfile in this folder. Please remove it and try again.")
+		os.Exit(1)
+		return nil
+	}
+
+	err := ioutil.WriteFile("Vagrantfile", resource.ProfileVagrantSingleNodeUbuntu2204Vagrantfile, 0644)
+	if err != nil {
+		return err
+	}
+
 	os.Exit(0)
 	return nil
 }
