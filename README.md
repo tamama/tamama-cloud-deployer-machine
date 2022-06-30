@@ -14,7 +14,7 @@ These host specifications work for my setup:
 
 Download the installer on your host:
 ```
-go install github.com/tamama/tamama-cloud-deployer-machine@v0.1.0
+go install github.com/tamama/tamama-cloud-deployer-machine@v0.2.1
 ```
 
 Navigate to your folder of choice:
