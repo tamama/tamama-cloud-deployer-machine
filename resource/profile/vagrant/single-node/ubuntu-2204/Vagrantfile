@@ -1,3 +1,67 @@
+###
+### Prerequisites
+###
+
+unless Vagrant.has_plugin?("vagrant-disksize")
+    raise  Vagrant::Errors::VagrantError.new, "vagrant-disksize plugin is missing. Please install it using 'vagrant plugin install vagrant-disksize' and rerun 'vagrant up'"
+end
+
+
+###
+### class ::Properties
+###
+class Properties
+
+VAGRANT_CONFIGURE_VM_PROVIDER_VIRTUALBOX_GROUP_NAME = "tamama-machine"
+VAGRANT_CONFIGURE_VM_PROVIDER_VIRTUALBOX_GROUP_PATH = "/" + VAGRANT_CONFIGURE_VM_PROVIDER_VIRTUALBOX_GROUP_NAME
+
+end # ending class Properties
+
+
+###
+### Setup VM
+###
+
 Vagrant.configure("2") do |config|
-    config.vm.box = "generic/ubuntu2204"
+
+  config.trigger.before :up do
+    vagrant_root = File.dirname(__FILE__)
+    Dir.mkdir "#{vagrant_root}/workspace"      unless File.exists?("#{vagrant_root}/workspace")
+  end
+
+  config.disksize.size = '250GB'
+
+  config.vagrant.plugins = ['vagrant-vbguest']
+  config.vbguest.auto_update = true
+
+  config.vm.define :ubuntu2204 do |node|
+
+      node.vm.box = "generic/ubuntu2204"
+
+      node.vm.hostname = "tamama-machine"
+
+      node.vm.network :forwarded_port , guest: 22 , host: 22222, protocol: "tcp", id: "ssh"
+      node.vm.network :forwarded_port , guest: 4444 , host: 44444, host_ip: "127.0.0.1", protocol: "tcp", id: "jupyter" 
+
+      node.vm.provider :virtualbox do |vb|
+      vb.name = ::Properties::VAGRANT_CONFIGURE_VM_PROVIDER_VIRTUALBOX_GROUP_NAME + ".ubuntu-2204"
+      vb.customize ["modifyvm", :id, "--groups", ::Properties::VAGRANT_CONFIGURE_VM_PROVIDER_VIRTUALBOX_GROUP_PATH]
+      vb.customize ["modifyvm", :id, "--memory", "8192", "--cpus", "4"]
+      end
+
+      node.vm.synced_folder ".", "/mnt/vagrant"
+
+      node.vm.provision "shell", inline: <<-END_OF_SHELL
+
+          #cp -r /mnt/bootstrap/etc/* /etc
+          #cp -r /mnt/bootstrap/var/* /var
+          #cp /mnt/bootstrap/bin/cde /usr/bin/cde
+          
+          #chown -R vagrant:vagrant /var/workspace
+          #chmod 755 /usr/bin/cde
+
+      END_OF_SHELL
+
+  end
+
 end
