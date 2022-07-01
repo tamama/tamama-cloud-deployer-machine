@@ -15,7 +15,7 @@ func NewApplicationV1(ctx context.Context) (instance *ApplicationV1) {
 	instance = &ApplicationV1{}
 
 	instance.Application = instance._NewApp()
-	
+
 	return instance
 }
 
