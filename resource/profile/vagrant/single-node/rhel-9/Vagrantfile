@@ -34,17 +34,17 @@ Vagrant.configure("2") do |config|
   config.vagrant.plugins = ['vagrant-vbguest']
   config.vbguest.auto_update = true
 
-  config.vm.define :ubuntu2204 do |node|
+  config.vm.define :rhel9 do |node|
 
-      node.vm.box = "generic/ubuntu2204"
+      node.vm.box = "generic/rhel9"
 
       node.vm.hostname = "tamama-machine"
 
-      node.vm.network :forwarded_port , guest: 22 , host: 10022, protocol: "tcp", id: "ssh"
-      node.vm.network :forwarded_port , guest: 8888 , host: 18888, host_ip: "127.0.0.1", protocol: "tcp", id: "jupyter" 
+      node.vm.network :forwarded_port , guest: 22 , host: 30022, protocol: "tcp", id: "ssh"
+      node.vm.network :forwarded_port , guest: 8888 , host: 38888, host_ip: "127.0.0.1", protocol: "tcp", id: "jupyter" 
 
       node.vm.provider :virtualbox do |vb|
-      vb.name = ::Properties::VAGRANT_CONFIGURE_VM_PROVIDER_VIRTUALBOX_GROUP_NAME + ".ubuntu-2204"
+      vb.name = ::Properties::VAGRANT_CONFIGURE_VM_PROVIDER_VIRTUALBOX_GROUP_NAME + ".rhel-9"
       vb.customize ["modifyvm", :id, "--groups", ::Properties::VAGRANT_CONFIGURE_VM_PROVIDER_VIRTUALBOX_GROUP_PATH]
       vb.customize ["modifyvm", :id, "--memory", "8192", "--cpus", "4"]
       end
