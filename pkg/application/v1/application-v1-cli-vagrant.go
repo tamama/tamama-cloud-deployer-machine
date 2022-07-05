@@ -14,6 +14,8 @@ var (
 	flag_vagrant_init_single_node_rhel_9      *bool
 	flag_vagrant_init_single_node_ubuntu_2204 *bool
 
+	flag_vagrant_init_single_node_rhel_9_test *bool
+
 	flag_vagrant_force *bool
 )
 
@@ -39,6 +41,13 @@ func (_self *ApplicationV1) _NewCommandVagrant() (command *cli.Command) {
 				Destination: flag_vagrant_init_single_node_ubuntu_2204,
 			},
 			&cli.BoolFlag{
+				Name:        "init-single-node-rhel-9-test",
+				Aliases:     []string{"init-redhat-test"},
+				Value:       false,
+				Usage:       "initializes TEST single-node vagrant-machine w/ Redhat Enterprise Linux 9",
+				Destination: flag_vagrant_init_single_node_rhel_9_test,
+			},
+			&cli.BoolFlag{
 				Name:        "force",
 				Aliases:     []string{"f"},
 				Value:       false,
@@ -57,6 +66,8 @@ func (_self *ApplicationV1) _RunCommandAction_Vagrant(ctx *cli.Context) (err err
 		err = _self._RunCommandAction_Vagrant_InitSingleNodeRhel9(ctx)
 	case ctx.Bool("init-single-node-ubuntu-2204"):
 		err = _self._RunCommandAction_Vagrant_InitSingleNodeUbuntu2204(ctx)
+	case ctx.Bool("init-single-node-rhel-9-test"):
+		err = _self._RunCommandAction_Vagrant_InitSingleNodeRhel9Test(ctx)
 	default:
 		cli.ShowSubcommandHelp(ctx)
 	}
@@ -77,6 +88,33 @@ func (_self *ApplicationV1) _RunCommandAction_Vagrant_InitSingleNodeRhel9(ctx *c
 	}
 
 	err := ioutil.WriteFile(filename_of_target_vagrantfile, resource.ProfileVagrantSingleNodeRhel9Vagrantfile, 0644)
+	if err != nil {
+		return err
+	}
+
+	if _, err := os.Lstat(filename_of_symlink_vagrantfile); err == nil {
+		os.Remove(filename_of_symlink_vagrantfile)
+	}
+
+	os.Symlink(filename_of_target_vagrantfile, filename_of_symlink_vagrantfile)
+
+	os.Exit(0)
+	return nil
+}
+
+func (_self *ApplicationV1) _RunCommandAction_Vagrant_InitSingleNodeRhel9Test(ctx *cli.Context) error {
+	filename_of_target_vagrantfile := fmt.Sprintf("Vagrantfile_single-node-rhel-9-test_%s", resource.Version)
+	filename_of_symlink_vagrantfile := "Vagrantfile"
+
+	if _, err := os.Stat(filename_of_target_vagrantfile); err == nil {
+		if !ctx.Bool("force") {
+			log.Printf("Already exists %+v in this folder. Please archive/rename existing file and try again.", filename_of_target_vagrantfile)
+			os.Exit(1)
+			return nil
+		}
+	}
+
+	err := ioutil.WriteFile(filename_of_target_vagrantfile, resource.ProfileVagrantSingleNodeRhel9TestVagrantfile, 0644)
 	if err != nil {
 		return err
 	}

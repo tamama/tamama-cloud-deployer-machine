@@ -34,17 +34,17 @@ Vagrant.configure("2") do |config|
   config.vagrant.plugins = ['vagrant-vbguest']
   config.vbguest.auto_update = true
 
-  config.vm.define :rhel9 do |node|
+  config.vm.define :rhel9_test do |node|
 
       node.vm.box = "generic/rhel9"
 
       node.vm.hostname = "tamama-machine"
 
-      node.vm.network :forwarded_port , guest: 22 , host: 30022, protocol: "tcp", id: "ssh"
-      node.vm.network :forwarded_port , guest: 8888 , host: 38888, host_ip: "127.0.0.1", protocol: "tcp", id: "jupyter" 
+      #node.vm.network :forwarded_port , guest: 22 , host: 30022, protocol: "tcp", id: "ssh"
+      #node.vm.network :forwarded_port , guest: 8888 , host: 38888, host_ip: "127.0.0.1", protocol: "tcp", id: "jupyter" 
 
       node.vm.provider :virtualbox do |vb|
-      vb.name = ::Properties::VAGRANT_CONFIGURE_VM_PROVIDER_VIRTUALBOX_GROUP_NAME + ".rhel-9"
+      vb.name = ::Properties::VAGRANT_CONFIGURE_VM_PROVIDER_VIRTUALBOX_GROUP_NAME + ".rhel-9-test"
       vb.customize ["modifyvm", :id, "--groups", ::Properties::VAGRANT_CONFIGURE_VM_PROVIDER_VIRTUALBOX_GROUP_PATH]
       vb.customize ["modifyvm", :id, "--memory", "8192", "--cpus", "4"]
       end
@@ -52,6 +52,11 @@ Vagrant.configure("2") do |config|
       node.vm.synced_folder ".", "/mnt/tamama"
 
       node.vm.provision "shell", inline: <<-END_OF_SHELL
+        
+        ###
+        ### Load user environmental settings
+        ###
+
         mkdir -p /etc/envrc.d
         echo "Zm9yIGkgaW4gL2V0Yy9lbnZyYy5kLyouZW52cmMgOyBkbwogICAgaWYgWyAtciAiJGkiIF07IHRoZW4KICAgICAgICBpZiBbICIkey0jKml9IiAhPSAiJC0iIF07IHRoZW4gCiAgICAgICAgICAgIC4gIiRpIgogICAgICAgIGVsc2UKICAgICAgICAgICAgLiAiJGkiID4vZGV2L251bGwKICAgICAgICBmaQogICAgZmkKZG9uZQo=" \
             | base64 -di \
@@ -59,19 +64,24 @@ Vagrant.configure("2") do |config|
         cp -f /mnt/tamama/.envrc /etc/envrc.d/tamama-vagrant.envrc || true
         . /etc/envrc
         
+        ###
+        ### Register VM on Redhat
+        ###
+
         subscription-manager register \
           --username $REDHAT_SUBSCRIPTION_MANAGER_USERNAME \
           --password $REDHAT_SUBSCRIPTION_MANAGER_PASSWORD \
           --auto-attach \
           --force 
 
+        ###
+        ### Install Terraform
+        ###
         
+        yum install -y yum-utils
+        yum-config-manager --add-repo https://rpm.releases.hashicorp.com/RHEL/hashicorp.repo
+        yum install -y terraform
 
-        #curl -kL https://releases.hashicorp.com/terraform/1.2.4/terraform_1.2.4_linux_amd64.zip -o /tmp
-
-        # echo "if [ -f /home/vagrant/.tamama/etc/profile ]; then . /home/vagrant/.tamama/etc/profile; fi" \
-        #     > /etc/profile.d/tamama.sh
-     
       END_OF_SHELL
 
   end

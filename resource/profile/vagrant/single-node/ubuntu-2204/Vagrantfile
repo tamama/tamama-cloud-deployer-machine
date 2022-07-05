@@ -29,7 +29,7 @@ Vagrant.configure("2") do |config|
     Dir.mkdir "#{vagrant_root}/workspace"      unless File.exists?("#{vagrant_root}/workspace")
   end
 
-  config.disksize.size = '250GB'
+  config.disksize.size = '100GB'
 
   config.vagrant.plugins = ['vagrant-vbguest']
   config.vbguest.auto_update = true
